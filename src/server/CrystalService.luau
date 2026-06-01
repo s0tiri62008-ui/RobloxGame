@@ -128,8 +128,23 @@ local function buildCluster(index, position)
 end
 
 -- ── Mining ────────────────────────────────────────────────────────────────────
+
+-- Returns true when the player has the CrystalPickaxe currently EQUIPPED
+-- (equipped = the Tool is a child of the Character, not just the Backpack).
+local function hasPickaxeEquipped(player)
+	local char = player.Character
+	return char and char:FindFirstChild("CrystalPickaxe") ~= nil
+end
+
 function CrystalService.tryMine(player, cluster)
 	if not cluster.available then return end
+
+	-- Pickaxe must be held out to mine
+	if not hasPickaxeEquipped(player) then
+		Notify.send(player, "Equip your pickaxe to mine! (Press 1 or click it)")
+		return
+	end
+
 	if carrying[player.UserId] then
 		Notify.send(player, "Your hands are full — drop it in your vault first!")
 		return
