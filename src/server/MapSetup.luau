@@ -11,6 +11,7 @@
 ]]
 
 local GameConfig = require(game.ReplicatedStorage.Shared.GameConfig)
+local Players    = game:GetService("Players")
 local Workspace  = game:GetService("Workspace")
 
 local MapSetup = {}
