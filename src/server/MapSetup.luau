@@ -1,22 +1,22 @@
 --[[
 	MapSetup
 	--------
-	Builds the static map geometry that exists independently of any player:
-		• Green grass ground layer
-		• Central lobby platform + spawn pad
-		• Dirt paths connecting lobby to each base slot
+	Builds the static, player-independent map geometry:
+	  • Central lobby platform + golden spawn pad
+	  • A physical "leaderboard sign" board in the lobby
+	  • Dirt paths radiating out toward the bases
 
-	NOTE: Player base geometry is intentionally NOT built here.
-	      BaseService.luau handles all base construction and logic.
+	Player bases are built by BaseService; crystal clusters by CrystalService.
+	The leaderboard board is created here but its TEXT is refreshed live by
+	LeaderboardService.
 ]]
 
 local GameConfig = require(game.ReplicatedStorage.Shared.GameConfig)
-local Players    = game:GetService("Players")
 local Workspace  = game:GetService("Workspace")
 
 local MapSetup = {}
 
--- ── Helper: create an anchored, smooth Part ───────────────────────────────────
+-- ── Helpers ───────────────────────────────────────────────────────────────────
 local function makePart(name, size, position, color, parent)
 	local p = Instance.new("Part")
 	p.Name          = name
@@ -30,12 +30,10 @@ local function makePart(name, size, position, color, parent)
 	return p
 end
 
--- ── Helper: floating billboard label above a Part ────────────────────────────
 local function addBillboard(part, text, textColor)
 	local bb = Instance.new("BillboardGui")
 	bb.Size        = UDim2.new(0, 220, 0, 55)
 	bb.StudsOffset = Vector3.new(0, 4, 0)
-	bb.AlwaysOnTop = false
 	bb.Parent      = part
 
 	local lbl = Instance.new("TextLabel")
@@ -43,7 +41,7 @@ local function addBillboard(part, text, textColor)
 	lbl.BackgroundColor3       = Color3.fromRGB(0, 0, 0)
 	lbl.BackgroundTransparency = 0.45
 	lbl.Text                   = text
-	lbl.TextColor3             = textColor or Color3.fromRGB(255, 255, 255)
+	lbl.TextColor3             = textColor or Color3.new(1, 1, 1)
 	lbl.TextScaled             = true
 	lbl.Font                   = Enum.Font.GothamBold
 	lbl.Parent                 = bb
@@ -53,88 +51,83 @@ local function addBillboard(part, text, textColor)
 	corner.Parent       = lbl
 end
 
--- ── Public: build all static map objects ─────────────────────────────────────
+-- ── Public ────────────────────────────────────────────────────────────────────
 function MapSetup.init()
-
-	-- Folder keeps the Workspace Explorer tidy
-	local mapFolder = Instance.new("Folder")
-	mapFolder.Name   = "Map"
-	mapFolder.Parent = Workspace
-
 	local lobbyFolder = Instance.new("Folder")
 	lobbyFolder.Name   = "Lobby"
 	lobbyFolder.Parent = Workspace
 
-	-- Ground Part removed — TerrainSetup.luau generates the terrain surface.
+	local mapFolder = Instance.new("Folder")
+	mapFolder.Name   = "Map"
+	mapFolder.Parent = Workspace
 
 	-- ── Lobby platform ───────────────────────────────────────────────────────
 	local lobby = makePart("LobbyPlatform",
 		GameConfig.LOBBY_SIZE,
 		GameConfig.LOBBY_POSITION,
-		Color3.fromRGB(220, 220, 220),
+		Color3.fromRGB(210, 210, 215),
 		lobbyFolder)
-	addBillboard(lobby, "⭐  LOBBY", Color3.fromRGB(255, 220, 50))
+	addBillboard(lobby, "💎 CRYSTAL BANDITS", Color3.fromRGB(120, 230, 245))
 
-	-- Golden spawn pad in the centre so players know where they'll appear.
-	local spawnPad = makePart("SpawnPad",
-		Vector3.new(12, 0.5, 12),
-		Vector3.new(0, 2.25, 0),
+	-- Golden spawn pad in the centre
+	makePart("SpawnPad",
+		Vector3.new(14, 0.5, 14),
+		GameConfig.LOBBY_POSITION + Vector3.new(0, 1.25, 0),
 		Color3.fromRGB(255, 215, 0),
 		lobbyFolder)
-	addBillboard(spawnPad, "SPAWN", Color3.fromRGB(255, 255, 100))
 
-	-- ── Paths (lobby → each base slot) ───────────────────────────────────────
-	-- Simple rectangular strips, one per BASE_COUNT slot.
-	-- Each path centre is roughly halfway between lobby (0,0,0) and the base.
+	-- ── Leaderboard sign ─────────────────────────────────────────────────────
+	-- A tall board with a SurfaceGui that LeaderboardService refreshes.
+	local board = makePart("LeaderboardSign",
+		Vector3.new(16, 12, 1),
+		GameConfig.LOBBY_POSITION + Vector3.new(0, 7, -28),
+		Color3.fromRGB(30, 30, 35),
+		lobbyFolder)
+
+	local surface = Instance.new("SurfaceGui")
+	surface.Name        = "Board"
+	surface.Face        = Enum.NormalId.Front
+	surface.CanvasSize  = Vector2.new(400, 300)
+	surface.Parent      = board
+
+	local title = Instance.new("TextLabel")
+	title.Name                 = "Title"
+	title.Size                 = UDim2.new(1, 0, 0.15, 0)
+	title.BackgroundTransparency = 1
+	title.Text                 = "🏆 RICHEST BANDITS"
+	title.TextColor3           = Color3.fromRGB(255, 215, 0)
+	title.TextScaled           = true
+	title.Font                 = Enum.Font.GothamBold
+	title.Parent               = surface
+
+	-- LeaderboardService writes the ranking into this label
+	local list = Instance.new("TextLabel")
+	list.Name                  = "List"
+	list.Position              = UDim2.new(0, 0, 0.15, 0)
+	list.Size                  = UDim2.new(1, 0, 0.85, 0)
+	list.BackgroundTransparency = 1
+	list.Text                  = "Waiting for players..."
+	list.TextColor3            = Color3.fromRGB(255, 255, 255)
+	list.TextScaled            = false
+	list.TextSize              = 28
+	list.Font                  = Enum.Font.GothamMedium
+	list.TextYAlignment        = Enum.TextYAlignment.Top
+	list.TextXAlignment        = Enum.TextXAlignment.Left
+	list.Parent                = surface
+
+	-- ── Paths toward the 4 cardinal bases (visual guides) ────────────────────
 	local pathDefs = {
-		{ pos = Vector3.new(   0, 1,  -90), size = Vector3.new(10, 1, 140) }, -- → North
-		{ pos = Vector3.new(   0, 1,   90), size = Vector3.new(10, 1, 140) }, -- → South
-		{ pos = Vector3.new( -90, 1,    0), size = Vector3.new(140, 1, 10) }, -- → West
-		{ pos = Vector3.new(  90, 1,    0), size = Vector3.new(140, 1, 10) }, -- → East
+		{ pos = Vector3.new( 110, 0.6,   0), size = Vector3.new(120, 1, 8) },
+		{ pos = Vector3.new(-110, 0.6,   0), size = Vector3.new(120, 1, 8) },
+		{ pos = Vector3.new(   0, 0.6, 110), size = Vector3.new(8, 1, 120) },
+		{ pos = Vector3.new(   0, 0.6,-110), size = Vector3.new(8, 1, 120) },
 	}
-
-	for i = 1, GameConfig.BASE_COUNT do
-		local pd = pathDefs[i]
-		if pd then
-			makePart("Path" .. i, pd.size, pd.pos,
-				Color3.fromRGB(180, 160, 120), mapFolder)
-		end
+	for i, pd in ipairs(pathDefs) do
+		makePart("Path" .. i, pd.size, pd.pos,
+			Color3.fromRGB(180, 160, 120), mapFolder)
 	end
 
-	-- ── Cash Button ──────────────────────────────────────────────────────────
-	-- Bright green pad offset from the spawn pad so players can't accidentally
-	-- stand on both at once.  Gives $5000 per touch with a per-player debounce.
-	local cashBtn = makePart("CashButton",
-		Vector3.new(10, 0.5, 10),
-		Vector3.new(16, 2.25, 0),   -- to the right of the spawn pad
-		Color3.fromRGB(0, 200, 80),
-		lobbyFolder)
-	cashBtn.Material = Enum.Material.Neon
-	addBillboard(cashBtn, "💰 +$5000", Color3.fromRGB(100, 255, 150))
-
-	local touchDebounce = {}  -- [UserId] = true while on cooldown
-
-	cashBtn.Touched:Connect(function(hit)
-		local character = hit.Parent
-		local player    = Players:GetPlayerFromCharacter(character)
-		if not player then return end
-		if touchDebounce[player.UserId] then return end
-
-		touchDebounce[player.UserId] = true
-
-		local leaderstats = player:FindFirstChild("leaderstats")
-		local cash        = leaderstats and leaderstats:FindFirstChild("Cash")
-		if cash then
-			cash.Value += 5000
-		end
-
-		-- 2-second cooldown so stepping on it repeatedly doesn't spam cash
-		task.delay(2, function()
-			touchDebounce[player.UserId] = nil
-		end)
-	end)
-
-	print("[MapSetup] Static map built.")
+	print("[MapSetup] Lobby and paths built.")
 end
 
 return MapSetup
