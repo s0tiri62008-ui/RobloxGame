@@ -31,6 +31,25 @@ local Notify        = require(script.Parent.Notify)
 
 local VaultService = {}
 
+-- Tracks who is currently holding a crack prompt.
+-- cracking[userId] = ProximityPrompt they are holding.
+-- Written by PromptButtonHoldBegan/Ended on each crack prompt.
+local cracking = {}
+
+-- Called by ToolService when the bat hits a player — cancels their crack hold.
+function VaultService.interruptCrackBy(player)
+	local prompt = cracking[player.UserId]
+	if prompt and prompt.Parent then
+		-- Toggling Enabled cancels the hold mid-way
+		prompt.Enabled = false
+		task.delay(0.3, function()
+			if prompt.Parent then
+				prompt.Enabled = (prompt.Parent.Parent ~= nil)  -- re-enable if vault still exists
+			end
+		end)
+	end
+end
+
 -- ── Leaderstats helper ────────────────────────────────────────────────────────
 local function updateCrystalStat(baseData)
 	local owner = baseData.owner
