@@ -184,6 +184,16 @@ function VaultService.init()
 		crackPrompt.Triggered:Connect(function(plr)
 			crack(plr, baseData)
 		end)
+
+		-- Track who is holding the crack prompt so the bat can interrupt it
+		crackPrompt.PromptButtonHoldBegan:Connect(function(plr)
+			cracking[plr.UserId] = crackPrompt
+		end)
+		crackPrompt.PromptButtonHoldEnded:Connect(function(plr)
+			if cracking[plr.UserId] == crackPrompt then
+				cracking[plr.UserId] = nil
+			end
+		end)
 	end
 
 	-- When a base is released (owner left), clear its vault display
