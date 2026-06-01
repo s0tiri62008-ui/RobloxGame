@@ -1,0 +1,12 @@
+# Roblox files
+*.rbxl
+*.rbxlx
+*.rbxmx
+*.rblx
+# Lua
+*.luac
+# Node (if used)
+node_modules/
+# OS
+.DS_Store
+Thumbs.db
