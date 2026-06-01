@@ -1,27 +1,24 @@
--- SERVER ENTRY POINT
--- Boots every service in the correct order.
-local Players = game:GetService("Players")
+--[[
+	SERVER ENTRY POINT
+	------------------
+	Boots all server-side services in the correct dependency order.
+
+	Order matters:
+	  1. MapSetup   — creates static world geometry (ground, lobby, paths)
+	  2. Leaderboard— must exist before CashService starts ticking cash
+	  3. CashService— starts the passive income loop
+	  4. BaseService — builds bases and wires touch/prompt events
+	                   (depends on ReplicatedStorage existing, not on the above)
+]]
 
 local MapSetup           = require(script.MapSetup)
 local LeaderboardService = require(script.LeaderboardService)
 local CashService        = require(script.CashService)
+local BaseService        = require(script.BaseService)
 
--- 1. Build the map first (other systems may reference map objects)
 MapSetup.init()
-
--- 2. Give players a leaderboard (must run before CashService ticks)
 LeaderboardService.init()
-
--- 3. Start passive cash income loop
 CashService.init()
-
--- 4. Assign a base to each player as they join / leave
-Players.PlayerAdded:Connect(function(player)
-	MapSetup.assignBase(player)
-end)
-
-Players.PlayerRemoving:Connect(function(player)
-	MapSetup.releaseBase(player)
-end)
+BaseService.init()
 
 print("[Server] Brainrot Battleground initialised!")
