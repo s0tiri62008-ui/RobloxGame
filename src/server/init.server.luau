@@ -24,6 +24,12 @@ local function cleanup()
 	local remotes = ReplicatedStorage:FindFirstChild("Remotes")
 	if remotes then remotes:Destroy() end
 
+	-- Clear tools so re-syncing in Studio doesn't stack duplicates
+	local StarterPack = game:GetService("StarterPack")
+	for _, child in StarterPack:GetChildren() do
+		child:Destroy()
+	end
+
 	Workspace.Terrain:Clear()
 end
 
