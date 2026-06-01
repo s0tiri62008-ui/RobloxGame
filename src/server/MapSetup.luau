@@ -107,6 +107,39 @@ function MapSetup.init()
 		end
 	end
 
+	-- ── Cash Button ──────────────────────────────────────────────────────────
+	-- Bright green pad offset from the spawn pad so players can't accidentally
+	-- stand on both at once.  Gives $5000 per touch with a per-player debounce.
+	local cashBtn = makePart("CashButton",
+		Vector3.new(10, 0.5, 10),
+		Vector3.new(16, 2.25, 0),   -- to the right of the spawn pad
+		Color3.fromRGB(0, 200, 80),
+		lobbyFolder)
+	cashBtn.Material = Enum.Material.Neon
+	addBillboard(cashBtn, "💰 +$5000", Color3.fromRGB(100, 255, 150))
+
+	local touchDebounce = {}  -- [UserId] = true while on cooldown
+
+	cashBtn.Touched:Connect(function(hit)
+		local character = hit.Parent
+		local player    = Players:GetPlayerFromCharacter(character)
+		if not player then return end
+		if touchDebounce[player.UserId] then return end
+
+		touchDebounce[player.UserId] = true
+
+		local leaderstats = player:FindFirstChild("leaderstats")
+		local cash        = leaderstats and leaderstats:FindFirstChild("Cash")
+		if cash then
+			cash.Value += 5000
+		end
+
+		-- 2-second cooldown so stepping on it repeatedly doesn't spam cash
+		task.delay(2, function()
+			touchDebounce[player.UserId] = nil
+		end)
+	end)
+
 	print("[MapSetup] Static map built.")
 end
 
