@@ -37,7 +37,6 @@ local CrystalService     = require(script.CrystalService)
 local VaultService       = require(script.VaultService)
 
 -- ── 3. Boot in order ──────────────────────────────────────────────────────────
-TerrainSetup.init()        -- terrain surface (Y = 0)
 MapSetup.init()            -- lobby, spawn pad, leaderboard sign, paths
 LeaderboardService.init()  -- leaderstats (before income can pay out)
 BaseService.init()         -- 8 claimable bases (+ vault blocks)
