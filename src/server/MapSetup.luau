@@ -65,13 +65,7 @@ function MapSetup.init()
 	lobbyFolder.Name   = "Lobby"
 	lobbyFolder.Parent = Workspace
 
-	-- ── Grass ground ─────────────────────────────────────────────────────────
-	-- A thin green layer that sits on top of the grey Baseplate.
-	makePart("Ground",
-		Vector3.new(512, 2, 512),
-		Vector3.new(0, 0, 0),
-		Color3.fromRGB(106, 127, 63),
-		mapFolder)
+	-- Ground Part removed — TerrainSetup.luau generates the terrain surface.
 
 	-- ── Lobby platform ───────────────────────────────────────────────────────
 	local lobby = makePart("LobbyPlatform",
