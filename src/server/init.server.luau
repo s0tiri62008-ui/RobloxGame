@@ -11,11 +11,13 @@
 	                   (depends on ReplicatedStorage existing, not on the above)
 ]]
 
+local TerrainSetup       = require(script.TerrainSetup)
 local MapSetup           = require(script.MapSetup)
 local LeaderboardService = require(script.LeaderboardService)
 local CashService        = require(script.CashService)
 local BaseService        = require(script.BaseService)
 
+TerrainSetup.init()      -- terrain first so Parts sit naturally on the surface
 MapSetup.init()
 LeaderboardService.init()
 CashService.init()
