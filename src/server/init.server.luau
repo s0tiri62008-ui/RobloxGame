@@ -41,6 +41,7 @@ local LeaderboardService = require(script.LeaderboardService)
 local BaseService        = require(script.BaseService)
 local CrystalService     = require(script.CrystalService)
 local VaultService       = require(script.VaultService)
+local ToolService        = require(script.ToolService)
 
 -- ── 3. Boot in order ──────────────────────────────────────────────────────────
 MapSetup.init()            -- lobby, spawn pad, leaderboard sign, paths
@@ -48,5 +49,6 @@ LeaderboardService.init()  -- leaderstats (before income can pay out)
 BaseService.init()         -- 8 claimable bases (+ vault blocks)
 CrystalService.init()      -- mining clusters + carry loop
 VaultService.init()        -- deposit / crack / income (needs bases + carry)
+ToolService.init()         -- pickaxe + bat in StarterPack (after Remotes exist)
 
 print("[Server] Crystal Bandits initialised!")
