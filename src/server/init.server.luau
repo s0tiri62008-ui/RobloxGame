@@ -30,7 +30,6 @@ end
 cleanup()
 
 -- ── 2. Require services ───────────────────────────────────────────────────────
-local TerrainSetup       = require(script.TerrainSetup)
 local MapSetup           = require(script.MapSetup)
 local LeaderboardService = require(script.LeaderboardService)
 local BaseService        = require(script.BaseService)
