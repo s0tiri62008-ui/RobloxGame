@@ -167,12 +167,8 @@ local function handleSwing(swinger)
 	end)
 end
 
--- Notify is needed for knockback messages — require lazily after init
-local Notify
-
 -- ── Init ──────────────────────────────────────────────────────────────────────
 function ToolService.init()
-	Notify = require(script.Parent.Notify)
 
 	-- Create the BatSwing RemoteEvent in the shared Remotes folder
 	local remotes = ReplicatedStorage:WaitForChild("Remotes", 10)
