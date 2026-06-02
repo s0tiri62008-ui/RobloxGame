@@ -117,22 +117,9 @@ local function makeBat()
 	weld.Part1  = barrel
 	weld.Parent = handle
 
-	-- LocalScript: fires BatSwing remote when the player clicks.
-	-- Source is set as a string — runs on the client when the cloned tool loads.
-	local ls = Instance.new("LocalScript")
-	ls.Name = "BatActivate"
-	ls.Source = [[
-local tool   = script.Parent
-local remote = game:GetService("ReplicatedStorage")
-              :WaitForChild("Remotes")
-              :WaitForChild("BatSwing", 15)
-if remote then
-    tool.Activated:Connect(function()
-        remote:FireServer()
-    end)
-end
-]]
-	ls.Parent = tool
+	-- NOTE: no LocalScript here — bat click is handled by ToolHandler.luau
+	-- (a StarterPlayerScripts module). LocalScript.Source is read-only in
+	-- running games, so we use a proper client module instead.
 
 	return tool
 end
