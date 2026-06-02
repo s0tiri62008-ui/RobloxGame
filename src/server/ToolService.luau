@@ -25,9 +25,11 @@
 	the player's character.
 ]]
 
-local Players    = game:GetService("Players")
-local StarterPack = game:GetService("StarterPack")
+local Players           = game:GetService("Players")
+local StarterPack       = game:GetService("StarterPack")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Notify = require(script.Parent.Notify)
 
 -- VaultService is required lazily (it isn't loaded yet when this module is
 -- first required, but it IS loaded before any BatSwing remote fires).
